@@ -7,9 +7,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -26,6 +28,8 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
     private Context mContext;
     private Drawable mSelectedDrawable;
     private Drawable mNoSelectedDrawable;
+    private HashMap<Integer, Boolean> isSelected = new HashMap<>();
+    private HashMap<Integer, Boolean> isSelectedImage = new HashMap<>();
 
     public ListAdapter(Context context, List<String> data) {
         this.mDatas = data;
@@ -33,6 +37,14 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
         minflater = LayoutInflater.from(context);
         mSelectedDrawable = mContext.getResources().getDrawable(R.mipmap.iv_photo_select);
         mNoSelectedDrawable = mContext.getResources().getDrawable(R.mipmap.iv_photo_noselect);
+
+        for (int i = 0; i < mDatas.size(); i++) {
+            isSelected.put(i, false);
+        }
+
+        for (int i = 0; i < mDatas.size(); i++) {
+            isSelectedImage.put(i, false);
+        }
     }
 
     @Override
@@ -45,20 +57,49 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 
     @SuppressLint("NewApi")
     @Override
-    public void onBindViewHolder(final ItemViewHolder holder, int position) {
+    public void onBindViewHolder(final ItemViewHolder holder, final int position) {
         holder.mtextView.setText(mDatas.get(position));
         if (onItemClickLister != null) {
+
+            holder.mCheckBox.setChecked(isSelected.get(position));
+
+            holder.mCheckBox.setTag(position);
+
+            holder.mCheckBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Integer tag = (Integer) v.getTag();
+                    if (isSelected.get(tag)) {
+                        isSelected.put(tag, false);
+                    } else {
+                        isSelected.put(tag, true);
+                    }
+
+                    System.out.println("==========rr=========5t==============" + tag);
+                    notifyDataSetChanged();
+                }
+            });
+
+            if (isSelectedImage.get(position)) {
+                holder.mImageView.setImageDrawable(mSelectedDrawable);
+            } else {
+                holder.mImageView.setImageDrawable(mNoSelectedDrawable);
+            }
+
+            holder.mImageView.setTag(position);
+
+
             holder.mImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    int pos = holder.getLayoutPosition();
-                    mSelect = !mSelect;
-                    if (mSelect) {
-                        holder.mImageView.setImageDrawable(mSelectedDrawable);
+                    Integer tag = (Integer) view.getTag();
+                    if (isSelectedImage.get(tag)) {
+                        isSelectedImage.put(tag, false);
                     } else {
-                        holder.mImageView.setImageDrawable(mNoSelectedDrawable);
+                        isSelectedImage.put(tag, true);
                     }
-                    onItemClickLister.onImageClick(view, pos);
+                    notifyDataSetChanged();
+                    onItemClickLister.onImageClick(view, position);
                 }
             });
 
@@ -131,11 +172,13 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 
         private TextView mtextView;
         private ImageView mImageView;
+        private CheckBox mCheckBox;
 
         public ItemViewHolder(View itemView) {
             super(itemView);
             mtextView = (TextView) itemView.findViewById(R.id.textview);
             mImageView = (ImageView) itemView.findViewById(R.id.imageView);
+            mCheckBox = (CheckBox) itemView.findViewById(R.id.checkbox);
         }
     }
 }
