@@ -2,6 +2,7 @@ package com.kevinguo.guodakui.recycleviewmacdemo;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,10 +21,17 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
     private List<String> mDatas;
     private LayoutInflater minflater;
     private OnItemClickLister onItemClickLister;
+    private boolean mSelect = false;
+    private Context mContext;
+    private Drawable mSelectedDrawable;
+    private Drawable mNoSelectedDrawable;
 
     public ListAdapter(Context context, List<String> data) {
         this.mDatas = data;
+        this.mContext = context;
         minflater = LayoutInflater.from(context);
+        mSelectedDrawable = mContext.getResources().getDrawable(R.mipmap.iv_photo_select);
+        mNoSelectedDrawable = mContext.getResources().getDrawable(R.mipmap.iv_photo_noselect);
     }
 
     @Override
@@ -39,6 +47,20 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
     public void onBindViewHolder(final ItemViewHolder holder, int position) {
         holder.mtextView.setText(mDatas.get(position));
         if (onItemClickLister != null) {
+            holder.mImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    int pos = holder.getLayoutPosition();
+                    mSelect = !mSelect;
+                    if (mSelect) {
+                        holder.mImageView.setImageDrawable(mSelectedDrawable);
+                    } else {
+                        holder.mImageView.setImageDrawable(mNoSelectedDrawable);
+                    }
+                    onItemClickLister.onImageClick(view, pos);
+                }
+            });
+
             if (!holder.mtextView.hasOnClickListeners()) {
                 holder.mtextView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -56,13 +78,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
                         return true;
                     }
                 });
-                holder.mImageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        int pos = holder.getLayoutPosition();
-                        onItemClickLister.onImageClick(view, pos);
-                    }
-                });
+
             }
         }
 
@@ -103,9 +119,9 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
     }
 
     interface OnItemClickLister {
-         void OnItemClick(View view, int position);
+        void OnItemClick(View view, int position);
 
-         void OnItemLongClick(View view, int position);
+        void OnItemLongClick(View view, int position);
 
         void onImageClick(View view, int position);
     }
